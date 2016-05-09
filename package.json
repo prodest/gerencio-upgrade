@@ -1,9 +1,9 @@
 {
-  "name": "rancher-upgrade",
+  "name": "gerencio-upgrade",
   "version": "0.0.2",
-  "description": "ugrades a single service in rancher",
-  "main": "rancher-upgrade.js",
-  "author": "Robert Zhu",
+  "description": "ugrades a single service in gerenc.io",
+  "main": "gerencio-upgrade.js",
+  "author": "Clayton Silva",
   "license": "ISC",
   "dependencies": {
     "delete": "^0.2.1",
