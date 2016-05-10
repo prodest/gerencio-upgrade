@@ -18,13 +18,13 @@ var RANCHER_COMPOSE_OSX     = "https://releases.rancher.com/compose/beta/latest/
 
 // the rancher-compose archives above contain an intermediate folder that varies by version
 // this should be periodically updated as rancher releases new versions
-var RANCHER_COMPOSE_DIR_NAME = "rancher-compose-v0.4.3";
+var RANCHER_COMPOSE_DIR_NAME = "rancher-compose-v0.7.3";
 
 var isWin = /^win/.test(process.platform);
 var isOSX = /^darwin/.test(process.platform);
 
 var serviceName         = process.argv[2];  // the name of the service to upgrade
-var newServiceImage     = process.argv[3];  // the image of the new service, ex: robzhu/nodecolor:54
+var interval            = process.argv[3];  // interval in miliseconds to change version in nodes
 
 var filter_keys = function(obj, filter) {
   var key, keys = [];
@@ -77,36 +77,20 @@ var deployUpgrade = function(){
     var currentServiceElement = yamlDoc[currentServiceEntry];
     console.log(currentServiceElement);
     //clone the service element
-    var newServiceElement = (JSON.parse(JSON.stringify(currentServiceElement)));
-    newServiceElement.image = newServiceImage;
-
-    //name the new service:
-    var newServiceName = util.format( "%s-%s", serviceName, newServiceImage.split(':').pop() );
-
-    //newServiceName = newServiceName.replace(".","-");
-    //replace all instance of '.' with '-' because rancher forbids the '.' in the service name
-    newServiceName = newServiceName.split(".").join("-");
-
-    console.log("inserting new YAML element with name: %s", newServiceName );
-    yamlDoc[newServiceName] = newServiceElement;
-
     var targetFile = sourceComposeFile;
-    console.log("writing modified YAML file out to %s", targetFile);
+    console.log("writing same YAML file out to %s", targetFile);
     writeYaml.sync(targetFile, yamlDoc);
     console.log("successfully wrote modified YAML file out to %s", targetFile);
 
-    if( newServiceName === currentServiceEntry ){
-      throw new Error("the service current version and target version are the same, aborting.");
-    }
 
-    var args = util.format("--url %s --access-key %s --secret-key %s -p %s --file %s upgrade %s %s",
+    var args = util.format("--url %s --access-key %s --secret-key %s -p %s --file %s up -d --batch-size 1 --interval %s --confirm-upgrade  --force-upgrade %s ",
       process.env.RANCHER_URL,
       process.env.RANCHER_ACCESS_KEY,
       process.env.RANCHER_SECRET_KEY,
       process.env.RANCHER_STACK,
       targetFile,
-      currentServiceEntry,
-      newServiceName );
+      interval,
+      currentServiceEntry);
 
     var source = RANCHER_COMPOSE_LINUX;
     if(isWin) {
@@ -125,7 +109,7 @@ var deployUpgrade = function(){
         var cmd = null;
         if(isWin){
           console.log("Detected environment: Windows");
-          console.log("copying rancher-compose.exe to working directory...")
+          console.log("copying rancher-compose.exe to working directory...");
           var composeFilePath = path.join("./", RANCHER_COMPOSE_DIR_NAME, "rancher-compose.exe");
           fss.copy( composeFilePath, "./rancher-compose.exe");
 

@@ -1,19 +1,21 @@
-# rancher-upgrade
-This script upgrades a single service to a new container ID in a target rancher environment. It does this by wrapping "rancher-compose upgrade A B" and providing all the requisite environment parameters via environment variables. 
+# gerencio-upgrade
+Script para atualização de ambiente dentro do gerenc.io . Utilizando o  "rancher-compose up --force-upgrade A" utilizando parametros e variaveis de ambientes documentados abaixo. 
 
 ```
-RANCHER_URL         	- the url of the rancher server, ex: http://myrancher.com:8080/v1/projects/abc
+RANCHER_URL         	- the url of the rancher server, ex: https://gerenc.io/v1/projects/abc
 RANCHER_ACCESS_KEY  	- your rancher API access key
 RANCHER_SECRET_KEY  	- your rancher API secret key 
 RANCHER_STACK       	- the name of your rancher stack, ex: "default", "web"
-RANCHER_COMPOSE_URL		- the url where the compose configuration lives, ex: http://myrancher.com:8080/v1/projects/foo/environments/bar/composeconfig
+RANCHER_COMPOSE_URL		- the url where the compose configuration lives, ex: https://gerenc.io/v1/projects/foo/environments/bar/composeconfig
 ```
 
 Then run:
 ```
-node ./rancher-upgrade.js {serviceNam} {imageId}
-node ./rancher-upgrade.js nodecolor robzhu/nodecolor:0.3.1
+node ./rancher-upgrade.js {serviceNam} {interval}
+node ./rancher-upgrade.js nodecolor 20000
 ```
+O intervalor é em milisegundos, que equivale o tempo que o upgrade deve ter para a atualização de cada conteiner do serviço
+
 
 ## CircleCI integration
 Edit your project's circle.yml file and add the following lines at the end of your deployment phase:
