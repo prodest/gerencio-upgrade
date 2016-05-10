@@ -83,7 +83,7 @@ var deployUpgrade = function(){
     console.log("successfully wrote modified YAML file out to %s", targetFile);
 
 
-    var args = util.format("--url %s --access-key %s --secret-key %s -p %s --file %s up -d --batch-size 1 --interval %s --confirm-upgrade  --force-upgrade %s ",
+    var args = util.format("--url %s --access-key %s --secret-key %s -p %s --file %s up -d --batch-size 1 --interval %s --confirm-upgrade  --pull  --force-upgrade %s ",
       process.env.RANCHER_URL,
       process.env.RANCHER_ACCESS_KEY,
       process.env.RANCHER_SECRET_KEY,
