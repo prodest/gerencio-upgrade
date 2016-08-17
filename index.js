@@ -1,3 +1,3 @@
 'use strict';
 
-module.exports = require('./gerencio-upgrade');
+module.exports = require('./gerencio-upgrade-lib');

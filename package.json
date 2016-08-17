@@ -6,6 +6,7 @@
   "author": "Clayton Silva",
   "license": "ISC",
   "dependencies": {
+    "bluebird": "^3.4.1",
     "delete": "^0.2.1",
     "download": "^4.2.0",
     "fs-extra": "^0.24.0",
@@ -13,8 +14,12 @@
     "js-yaml": "^3.4.2",
     "npm-run": "^2.0.0",
     "request": "^2.63.0",
+    "request-promise": "^4.1.1",
     "shelljs": "^0.5.3",
     "unzip2": "^0.2.5",
     "write-yaml": "^0.2.1"
+  },
+  "devDependencies": {
+    "eslint-config-prodest": "^1.0.12"
   }
 }

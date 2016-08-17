@@ -1,0 +1,6 @@
+{
+  "globalDependencies": {
+    "bluebird": "registry:dt/bluebird#2.0.0+20160701023356",
+    "request-promise": "registry:dt/request-promise#3.0.0+20160628092802"
+  }
+}
