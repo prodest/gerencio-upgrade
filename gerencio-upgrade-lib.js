@@ -48,10 +48,13 @@ function upgrade(serviceName, interval, rancherUrl, rancherAccessKey, rancherSec
       return keys;
     };
 
+    var tempPath = "temp/" + new Date().toISOString().replace(/:/g, '.');
+    fse.mkdirsSync(tempPath);
+
     var deployUpgrade = function (resolve, reject) {
       console.log('DEPLOYMENT STARTING');
       try {
-        var sourceComposeFile = "docker-compose.yml";
+        var sourceComposeFile = tempPath + "/docker-compose.yml";
 
         console.log("loading %s", sourceComposeFile);
         var yamlDoc = yaml.safeLoad(fs.readFileSync(sourceComposeFile, "utf8"));
@@ -62,7 +65,8 @@ function upgrade(serviceName, interval, rancherUrl, rancherAccessKey, rancherSec
 
         var currentServiceEntry = null;
         if (matches.length === 0) {
-          throw util.format("could not find any services matching name: %s", serviceName);
+          clearAll(tempPath);
+          return reject(util.format("could not find any services matching name: %s", serviceName));
         }
         else if (matches.length == 1) {
           currentServiceEntry = matches[0];
@@ -80,7 +84,8 @@ function upgrade(serviceName, interval, rancherUrl, rancherAccessKey, rancherSec
           });
         }
         if (currentServiceEntry === null) {
-          throw "could not find a matching service entry, giving up";
+          clearAll(tempPath);
+          return reject("could not find a matching service entry, giving up");
         }
 
         console.log("Using service entry: " + currentServiceEntry);
@@ -95,7 +100,7 @@ function upgrade(serviceName, interval, rancherUrl, rancherAccessKey, rancherSec
         console.log("successfully wrote modified YAML file out to %s", targetFile);
 
 
-        var args = util.format("--url %s --access-key %s --secret-key %s -p %s --file %s up -d --batch-size 1 --interval %s --confirm-upgrade  --pull  --force-upgrade %s ",
+        var args = util.format(" --url %s --access-key %s --secret-key %s -p %s --file %s up -d --batch-size 1 --interval %s --confirm-upgrade  --pull  --force-upgrade %s ",
           rancherUrl,
           rancherAccessKey,
           rancherSecretKey,
@@ -114,24 +119,22 @@ function upgrade(serviceName, interval, rancherUrl, rancherAccessKey, rancherSec
 
         new download({ extract: true })
           .get(source)
-          .dest(".")
+          .dest(tempPath)
           .run(function () {
             console.log("rancher-compose downloaded");
 
             var cmd = null;
             if (isWin) {
               console.log("Detected environment: Windows");
-              console.log("copying rancher-compose.exe to working directory...");
-              var composeFilePath = path.join("./", RANCHER_COMPOSE_DIR_NAME, "rancher-compose.exe");
-              fss.copy(composeFilePath, "./rancher-compose.exe");
+              var composeFilePath = path.join(tempPath + "/", RANCHER_COMPOSE_DIR_NAME, "rancher-compose.exe");
 
-              cmd = "rancher-compose.exe ";
+              cmd = composeFilePath;
             } else if (isOSX) {
               console.log("Detected environment: OSX");
-              cmd = RANCHER_COMPOSE_DIR_NAME + "/rancher-compose ";
+              cmd = tempPath + "/" + RANCHER_COMPOSE_DIR_NAME + "/rancher-compose ";
             } else {
               console.log("Detected environment: Linux");
-              cmd = RANCHER_COMPOSE_DIR_NAME + "/rancher-compose ";
+              cmd = tempPath + "/" + RANCHER_COMPOSE_DIR_NAME + "/rancher-compose ";
             }
 
             console.log("running:\n" + cmd + args);
@@ -140,12 +143,13 @@ function upgrade(serviceName, interval, rancherUrl, rancherAccessKey, rancherSec
             var exitCode = exec(cmd + args, function (error, stdout, stderr) {
               if (error) {
                 console.log(error);
+                clearAll(tempPath);
                 reject({
                   stdout: stdout,
                   stderr: stderr
                 });
               } else {
-                console
+                clearAll(tempPath);
                 resolve({
                   stdout: stdout,
                   stderr: stderr
@@ -157,7 +161,8 @@ function upgrade(serviceName, interval, rancherUrl, rancherAccessKey, rancherSec
         console.log("Deployment failed:");
         console.error(e);
 
-        throw e;
+        clearAll(tempPath);
+        return reject(e);
       }
     };
 
@@ -170,20 +175,30 @@ function upgrade(serviceName, interval, rancherUrl, rancherAccessKey, rancherSec
       // rancherComposeUrl   - the url where the compose configuration lives
 
       var server = rancherUrl;
-      if (!server)
-        throw new Error('required variable: rancherUrl- the url of the rancher server, ex: http://myrancher.com:8080/v1/projects/abc');
+      if (!server) {
+        clearAll(tempPath);
+        return reject(new Error('required variable: rancherUrl- the url of the rancher server, ex: http://myrancher.com:8080/v1/projects/abc'));
+      }
       var url = rancherComposeUrl;
-      if (!url)
-        throw new Error('required variable: rancherComposeUrl- the url where the compose configuration lives');
+      if (!url) {
+        clearAll(tempPath);
+        return reject(new Error('required variable: rancherComposeUrl- the url where the compose configuration lives'));
+      }
       var username = rancherAccessKey;
-      if (!username)
-        throw new Error('required variable: rancherAccessKey- your rancher API access key');
+      if (!username) {
+        clearAll(tempPath);
+        return reject(new Error('required variable: rancherAccessKey- your rancher API access key'));
+      }
       var password = rancherSecretKey;
-      if (!password)
-        throw new Error('required variable: rancherSecretKey- your rancher API secret key');
+      if (!password) {
+        clearAll(tempPath);
+        return reject(new Error('required variable: rancherSecretKey- your rancher API secret key'));
+      }
       var stack = rancherStack;
-      if (!stack)
-        throw new Error('required variable: rancherStack- the name of your rancher stack, ex: "default", "web"');
+      if (!stack) {
+        clearAll(tempPath);
+        return reject(new Error('required variable: rancherStack- the name of your rancher stack, ex: "default", "web"'));
+      }
 
       fse.removeSync("docker-compose.yml");
       fse.removeSync("rancher-compose.yml");
@@ -191,26 +206,31 @@ function upgrade(serviceName, interval, rancherUrl, rancherAccessKey, rancherSec
       console.log("downloading rancher compose config...");
       console.log(url);
 
-
       var r = request.get(url).auth(username, password, true)
-        .pipe(unzip.Extract({ path: '.' }))
+        .pipe(unzip.Extract({ path: tempPath }))
         .on('close', function () {
           deployUpgrade(resolve, reject);
         })
         .on('error', function (err) {
           console.error(err);
+
+          clearAll(tempPath);
           reject(err);
         });
     } catch (e) {
       console.log("Initialization failed:");
       console.error(e);
-      reject(e);
 
-      throw e;
+      clearAll(tempPath);
+      return reject(e);
     }
   });
 
   return p;
+}
+
+function clearAll(path) {
+  fse.removeSync(path);
 }
 
 module.exports = upgrade;

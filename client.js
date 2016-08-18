@@ -1,14 +1,14 @@
 var request = require('request-promise');
 var Promise = require('bluebird');
 
-var serviceName = process.argv[2];
-var interval = process.argv[3];
-var rancherUrl = process.env.RANCHER_URL;
-var rancherAccessKey = process.env.RANCHER_ACCESS_KEY;
-var rancherSecretKey = process.env.RANCHER_SECRET_KEY;
-var rancherStack = process.env.RANCHER_STACK;
-var rancherComposeUrl = process.env.RANCHER_COMPOSE_URL;
-var apiEndpoint = process.env.API_ENDPOINT;
+var serviceName = process.argv[2] || '';
+var interval = process.argv[3] || '1000';
+var rancherUrl = process.env.RANCHER_URL || '';
+var rancherAccessKey = process.env.RANCHER_ACCESS_KEY || '';
+var rancherSecretKey = process.env.RANCHER_SECRET_KEY || '';
+var rancherStack = process.env.RANCHER_STACK || 'api';
+var rancherComposeUrl = process.env.RANCHER_COMPOSE_URL || '';
+var apiEndpoint = process.env.API_ENDPOINT || '';
 
 var upgradeEndpoint = apiEndpoint + '/upgrade';
 var statusEndpoint = apiEndpoint + '/status';
