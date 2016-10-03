@@ -1,16 +1,14 @@
 var request = require('request-promise');
 var Promise = require('bluebird');
 
-var serviceName = process.argv[2] || 'api-detran';
+var serviceName = process.argv[2] || '';
 var interval = process.argv[3] || '1000';
-var rancherUrl = process.env.RANCHER_URL || 'http://cloud.datacenter.es.gov.br.local/v1/projects/1a4680';
-var rancherAccessKey = process.env.RANCHER_ACCESS_KEY || '898304FA0241E8DBBB34';
-var rancherSecretKey = process.env.RANCHER_SECRET_KEY || 'ws9LnyA2TFV9yPPDuZ7nu5NVFCnM6DpDP6SB8Uqm';
+var rancherUrl = process.env.RANCHER_URL || '';
+var rancherAccessKey = process.env.RANCHER_ACCESS_KEY || '';
+var rancherSecretKey = process.env.RANCHER_SECRET_KEY || '';
 var rancherStack = process.env.RANCHER_STACK || 'api';
-var rancherComposeUrl = process.env.RANCHER_COMPOSE_URL || 'http://cloud.datacenter.es.gov.br.local/v1/projects/1a4680/environments/1e56/composeconfig';
-//var apiEndpoint = process.env.API_ENDPOINT || 'http://10.32.32.93/cloud';
-//var apiEndpoint = process.env.API_ENDPOINT || 'http://localhost:4555/cloud';
-var apiEndpoint = process.env.API_ENDPOINT || 'https://api.es.gov.br/cloud';
+var rancherComposeUrl = process.env.RANCHER_COMPOSE_URL || '';
+var apiEndpoint = process.env.API_ENDPOINT || '';
 
 var upgradeEndpoint = apiEndpoint + '/upgrade';
 var statusEndpoint = apiEndpoint + '/status';
